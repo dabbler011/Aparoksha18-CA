@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     tools:context="org.aparoksha.app18.ca.Activities.MainActivity">
 
-
     <Button
         android:id="@+id/upload"
         style="@style/FirebaseUI.Button"

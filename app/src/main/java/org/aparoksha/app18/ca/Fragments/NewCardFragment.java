@@ -47,7 +47,6 @@ public class NewCardFragment extends Fragment {
 
             @Override
             public void onCompleted(View view) {
-
             }
         });
 
