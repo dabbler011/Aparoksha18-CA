@@ -1,6 +1,7 @@
 package org.aparoksha.app18.ca.Activities
 
 import android.app.Activity
+import android.app.ProgressDialog
 import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
@@ -33,7 +34,6 @@ class MainActivity : AppCompatActivity() {
     private val RC_SIGN_IN = 1
     private val RC_PHOTO_PICKER = 2
     private val CAMERA_REQUEST = 3
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -41,7 +41,7 @@ class MainActivity : AppCompatActivity() {
         mFirebaseAuth = FirebaseAuth.getInstance()
         mFirebaseStorage = FirebaseStorage.getInstance()
 
-        mStorageReference = mFirebaseStorage.getReference().child("cam")
+        mStorageReference = mFirebaseStorage.getReference()
 
         upload.setOnClickListener(View.OnClickListener { view ->
                 val intent = Intent(Intent.ACTION_GET_CONTENT)
@@ -94,9 +94,8 @@ class MainActivity : AppCompatActivity() {
         return super.onOptionsItemSelected(item)
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        Log.d("aaya","aaya")
         if (requestCode == RC_SIGN_IN) {
             if(resultCode == Activity.RESULT_OK) {
                 toast("Signed In")
@@ -106,29 +105,33 @@ class MainActivity : AppCompatActivity() {
             }
         } else if(requestCode == RC_PHOTO_PICKER && resultCode == Activity.RESULT_OK) {
             if(mFirebaseAuth.currentUser != null) {
-                val SelectedImageUri = data.getData()
-                toast(SelectedImageUri.toString())
+                val pd = ProgressDialog.show(this,"Uploading File","Processing...")
+                val SelectedImageUri = data!!.getData()
                 val userStorage = mStorageReference.child(mFirebaseAuth.currentUser!!.email.toString())
-                val Reference  = userStorage.child(mFirebaseAuth.currentUser!!.uid)
-                val photoRef = Reference.child(System.currentTimeMillis().toString())
+                val photoRef = userStorage.child(System.currentTimeMillis().toString())
                 photoRef.putFile(SelectedImageUri).addOnSuccessListener(this) { taskSnapshot ->
-                       toast("Successfully Uploaded")
+                    pd.dismiss()
+                    toast("Successfully Uploaded")
+                }.addOnFailureListener(this) {
+                    pd.dismiss()
+                    toast("Failed")
                 }
-
-            } else {
-                toast("Authentication Error")
-                userName = ""
-                AuthUI.getInstance().signOut(this)
             }
         } else if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
-            val extras = data.extras
-            val imageBitmap = extras.get("data") as Bitmap
-            val SelectedImageUri = getImageUri(applicationContext, imageBitmap)
-            val userStorage = mStorageReference.child(mFirebaseAuth.currentUser!!.email.toString())
-            val Reference  = userStorage.child(mFirebaseAuth.currentUser!!.uid)
-            val photoRef = Reference.child(System.currentTimeMillis().toString())
-            photoRef.putFile(SelectedImageUri).addOnSuccessListener(this) { taskSnapshot ->
-                toast("Successfully Uploaded")
+            if(mFirebaseAuth.currentUser != null) {
+                val pd = ProgressDialog.show(this, "Uploading File", "Processing...")
+                val extras = data!!.extras
+                val imageBitmap = extras.get("data") as Bitmap
+                val SelectedImageUri = getImageUri(applicationContext, imageBitmap)
+                val userStorage = mStorageReference.child(mFirebaseAuth.currentUser!!.email.toString())
+                val photoRef = userStorage.child(System.currentTimeMillis().toString())
+                photoRef.putFile(SelectedImageUri).addOnSuccessListener(this) { taskSnapshot ->
+                    pd.dismiss()
+                    toast("Successfully Uploaded")
+                }.addOnFailureListener(this) {
+                    pd.dismiss()
+                    toast("Failed")
+                }
             }
         }
     }
