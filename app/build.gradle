@@ -44,5 +44,6 @@ dependencies {
     compile 'com.google.firebase:firebase-auth:11.4.0'
     compile 'com.google.firebase:firebase-messaging:11.4.0'
     compile 'com.clock.scratch:Scratch:1.0.0'
+    compile 'com.squareup.okhttp3:okhttp:3.4.1'
 }
 apply plugin: 'com.google.gms.google-services'

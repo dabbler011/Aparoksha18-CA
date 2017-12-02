@@ -20,28 +20,37 @@ import android.graphics.Bitmap
 import android.content.Context
 import android.net.Uri
 import android.provider.MediaStore.Images
+import com.google.firebase.database.*
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import org.aparoksha.app18.ca.Models.Data
 import org.aparoksha.app18.ca.R
 import org.jetbrains.anko.UI
+import org.jetbrains.anko.doAsync
+import org.jetbrains.anko.uiThread
+import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 
 
 class MainActivity : AppCompatActivity() {
     private lateinit var mFirebaseAuth : FirebaseAuth
     private lateinit var mAuthStateListener: FirebaseAuth.AuthStateListener
-    private var userName = ""
     private lateinit var mStorageReference :StorageReference
     private lateinit var mFirebaseStorage: FirebaseStorage
+    private lateinit var mFirebaeDB: FirebaseDatabase
+    private lateinit var mDBReference: DatabaseReference
     private val RC_SIGN_IN = 1
     private val RC_PHOTO_PICKER = 2
     private val CAMERA_REQUEST = 3
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         mFirebaseAuth = FirebaseAuth.getInstance()
         mFirebaseStorage = FirebaseStorage.getInstance()
-
         mStorageReference = mFirebaseStorage.getReference()
+        mFirebaeDB = FirebaseDatabase.getInstance()
 
         upload.setOnClickListener(View.OnClickListener { view ->
                 val intent = Intent(Intent.ACTION_GET_CONTENT)
@@ -57,10 +66,7 @@ class MainActivity : AppCompatActivity() {
 
         mAuthStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
             val mUser = firebaseAuth.currentUser
-            if(mUser!=null) {
-                userName = mUser.toString()
-            } else {
-                userName = ""
+            if(mUser!=null) {} else {
                 startActivityForResult(
                         AuthUI.getInstance()
                                 .createSignInIntentBuilder()
@@ -88,7 +94,6 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if(item.itemId == R.id.logout) {
             AuthUI.getInstance().signOut(this)
-            userName = ""
             return true
         }
         return super.onOptionsItemSelected(item)
@@ -99,6 +104,24 @@ class MainActivity : AppCompatActivity() {
         if (requestCode == RC_SIGN_IN) {
             if(resultCode == Activity.RESULT_OK) {
                 toast("Signed In")
+                if(mFirebaseAuth.currentUser!!.email != null) {
+                    mDBReference = mFirebaeDB.getReference(mFirebaseAuth.currentUser!!.email!!.replace(".", "")
+                            .replace("[", "").replace("#", "").replace("]", ""))
+                } else if(mFirebaseAuth.currentUser!!.phoneNumber != null){
+                    mDBReference = mFirebaeDB.getReference(mFirebaseAuth.currentUser!!.phoneNumber)
+                } else {
+                    AuthUI.getInstance().signOut(this)
+                }
+                mDBReference.addValueEventListener(object : ValueEventListener {
+                    override fun onDataChange(p0: DataSnapshot?) {
+                         //To change body of created functions use File | Settings | File Templates.
+                    }
+
+                    override fun onCancelled(p0: DatabaseError?) {
+                         //To change body of created functions use File | Settings | File Templates.
+                    }
+                })
+
             } else {
                 toast("Sign In Cancelled")
                 finish()
@@ -107,10 +130,23 @@ class MainActivity : AppCompatActivity() {
             if(mFirebaseAuth.currentUser != null) {
                 val pd = ProgressDialog.show(this,"Uploading File","Processing...")
                 val SelectedImageUri = data!!.getData()
-                val userStorage = mStorageReference.child(mFirebaseAuth.currentUser!!.email.toString())
+                var path:String
+
+                if(mFirebaseAuth.currentUser!!.email !=null) {
+                    path = mFirebaseAuth.currentUser!!.email.toString().replace(".", "")
+                            .replace("[", "").replace("#", "").replace("]", "")
+                } else if (mFirebaseAuth.currentUser!!.phoneNumber != null) {
+                    path = mFirebaseAuth.currentUser!!.phoneNumber.toString()
+                } else {
+                    toast("Authentication Error")
+                    return
+                }
+
+                val userStorage = mStorageReference.child(path)
                 val photoRef = userStorage.child(System.currentTimeMillis().toString())
                 photoRef.putFile(SelectedImageUri).addOnSuccessListener(this) { taskSnapshot ->
                     pd.dismiss()
+                    getScore(path)
                     toast("Successfully Uploaded")
                 }.addOnFailureListener(this) {
                     pd.dismiss()
@@ -123,7 +159,19 @@ class MainActivity : AppCompatActivity() {
                 val extras = data!!.extras
                 val imageBitmap = extras.get("data") as Bitmap
                 val SelectedImageUri = getImageUri(applicationContext, imageBitmap)
-                val userStorage = mStorageReference.child(mFirebaseAuth.currentUser!!.email.toString())
+                var path:String
+
+                if(mFirebaseAuth.currentUser!!.email !=null) {
+                    path = mFirebaseAuth.currentUser!!.email.toString().replace(".", "")
+                            .replace("[", "").replace("#", "").replace("]", "")
+                } else if (mFirebaseAuth.currentUser!!.phoneNumber != null) {
+                    path = mFirebaseAuth.currentUser!!.phoneNumber.toString()
+                } else {
+                    toast("Authentication Error")
+                    return
+                }
+
+                val userStorage = mStorageReference.child(path)
                 val photoRef = userStorage.child(System.currentTimeMillis().toString())
                 photoRef.putFile(SelectedImageUri).addOnSuccessListener(this) { taskSnapshot ->
                     pd.dismiss()
@@ -133,6 +181,43 @@ class MainActivity : AppCompatActivity() {
                     toast("Failed")
                 }
             }
+        }
+    }
+
+    fun updateScore(value: Long,path: String) {
+        mDBReference = mFirebaeDB.getReference(path)
+        mDBReference.child("count").setValue(value+1)
+        if((value+1) % 5 == 0L){
+
+        }
+    }
+
+    fun getScore(path: String){
+        doAsync {
+            val client = OkHttpClient()
+
+            val request = Request.Builder()
+                    .url("https://aporoksha18-ca.firebaseio.com/" + path + ".json")
+                    .build()
+            val response = client.newCall(request).execute()
+            if (response.isSuccessful) {
+                //val updatesList: ArrayList<Notification> = ArrayList()
+                try {
+                    val body = JSONObject(response.body()?.string())
+                    val keys = body.keys()
+                    if (keys.hasNext()) {
+                        val key = keys.next().toString()
+                        var data = Data()
+                        data.value = body.getLong(key)
+                        if (data.value != 0L) {
+                            uiThread { updateScore(data.value,path) }
+                        }
+                    }
+                } catch (e: Exception){
+                    uiThread { updateScore(0L,path) }
+                }
+            }
+
         }
     }
 
