@@ -15,7 +15,6 @@ import com.google.firebase.storage.StorageReference
 import kotlinx.android.synthetic.main.activity_main.*
 import org.jetbrains.anko.toast
 import java.util.*
-import android.util.Log
 import android.graphics.Bitmap
 import android.content.Context
 import android.net.Uri
@@ -25,12 +24,11 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.aparoksha.app18.ca.Models.Data
 import org.aparoksha.app18.ca.R
-import org.jetbrains.anko.UI
 import org.jetbrains.anko.doAsync
+import org.jetbrains.anko.email
 import org.jetbrains.anko.uiThread
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
-
 
 class MainActivity : AppCompatActivity() {
     private lateinit var mFirebaseAuth : FirebaseAuth
@@ -40,6 +38,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var mFirebaeDB: FirebaseDatabase
     private lateinit var mDBReference: DatabaseReference
     private val RC_SIGN_IN = 1
+    private lateinit var dbData: Data
     private val RC_PHOTO_PICKER = 2
     private val CAMERA_REQUEST = 3
 
@@ -47,6 +46,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        dbData = Data()
         mFirebaseAuth = FirebaseAuth.getInstance()
         mFirebaseStorage = FirebaseStorage.getInstance()
         mStorageReference = mFirebaseStorage.getReference()
@@ -84,6 +84,25 @@ class MainActivity : AppCompatActivity() {
             val i = Intent(this,ScratchCardsActivity::class.java)
             startActivity(i)
         })
+
+        if(mFirebaseAuth.currentUser != null) {
+            mDBReference = mFirebaeDB.getReference("users").child(mFirebaseAuth.currentUser!!.uid)
+            mDBReference.keepSynced(true)
+            mDBReference.addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(p0: DataSnapshot) {
+                    if(p0.value != null) {
+                        dbData = p0.getValue(Data::class.java)!!
+                    } else {
+                        dbData = Data()
+                    }
+                }
+                override fun onCancelled(p0: DatabaseError?) {
+                        //To change body of created functions use File | Settings | File Templates
+                }
+            })
+        } else {
+            AuthUI.getInstance().signOut(this)
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -104,19 +123,18 @@ class MainActivity : AppCompatActivity() {
         if (requestCode == RC_SIGN_IN) {
             if(resultCode == Activity.RESULT_OK) {
                 toast("Signed In")
-                if(mFirebaseAuth.currentUser!!.email != null) {
-                    mDBReference = mFirebaeDB.getReference(mFirebaseAuth.currentUser!!.email!!.replace(".", "")
-                            .replace("[", "").replace("#", "").replace("]", ""))
-                } else if(mFirebaseAuth.currentUser!!.phoneNumber != null){
-                    mDBReference = mFirebaeDB.getReference(mFirebaseAuth.currentUser!!.phoneNumber)
-                } else {
-                    AuthUI.getInstance().signOut(this)
+                if(mFirebaseAuth.currentUser != null) {
+                    mDBReference = mFirebaeDB.getReference("users").child(mFirebaseAuth.currentUser!!.uid)
+                    mDBReference.keepSynced(true)
                 }
                 mDBReference.addValueEventListener(object : ValueEventListener {
-                    override fun onDataChange(p0: DataSnapshot?) {
-                         //To change body of created functions use File | Settings | File Templates.
+                    override fun onDataChange(p0: DataSnapshot) {
+                        if(p0.value != null){
+                            dbData = p0.getValue(Data::class.java)!!
+                        } else {
+                            dbData = Data()
+                        }
                     }
-
                     override fun onCancelled(p0: DatabaseError?) {
                          //To change body of created functions use File | Settings | File Templates.
                     }
@@ -130,23 +148,13 @@ class MainActivity : AppCompatActivity() {
             if(mFirebaseAuth.currentUser != null) {
                 val pd = ProgressDialog.show(this,"Uploading File","Processing...")
                 val SelectedImageUri = data!!.getData()
-                var path:String
 
-                if(mFirebaseAuth.currentUser!!.email !=null) {
-                    path = mFirebaseAuth.currentUser!!.email.toString().replace(".", "")
-                            .replace("[", "").replace("#", "").replace("]", "")
-                } else if (mFirebaseAuth.currentUser!!.phoneNumber != null) {
-                    path = mFirebaseAuth.currentUser!!.phoneNumber.toString()
-                } else {
-                    toast("Authentication Error")
-                    return
-                }
-
-                val userStorage = mStorageReference.child(path)
-                val photoRef = userStorage.child(System.currentTimeMillis().toString())
+                val userStorage = mStorageReference.child("user")
+                val idReference = userStorage.child(mFirebaseAuth.currentUser!!.uid)
+                val photoRef = idReference.child(System.currentTimeMillis().toString())
                 photoRef.putFile(SelectedImageUri).addOnSuccessListener(this) { taskSnapshot ->
                     pd.dismiss()
-                    getScore(path)
+                    updateScore()
                     toast("Successfully Uploaded")
                 }.addOnFailureListener(this) {
                     pd.dismiss()
@@ -159,22 +167,13 @@ class MainActivity : AppCompatActivity() {
                 val extras = data!!.extras
                 val imageBitmap = extras.get("data") as Bitmap
                 val SelectedImageUri = getImageUri(applicationContext, imageBitmap)
-                var path:String
 
-                if(mFirebaseAuth.currentUser!!.email !=null) {
-                    path = mFirebaseAuth.currentUser!!.email.toString().replace(".", "")
-                            .replace("[", "").replace("#", "").replace("]", "")
-                } else if (mFirebaseAuth.currentUser!!.phoneNumber != null) {
-                    path = mFirebaseAuth.currentUser!!.phoneNumber.toString()
-                } else {
-                    toast("Authentication Error")
-                    return
-                }
-
-                val userStorage = mStorageReference.child(path)
-                val photoRef = userStorage.child(System.currentTimeMillis().toString())
+                val userStorage = mStorageReference.child("user")
+                val idReference = userStorage.child(mFirebaseAuth.currentUser!!.uid)
+                val photoRef = idReference.child(System.currentTimeMillis().toString())
                 photoRef.putFile(SelectedImageUri).addOnSuccessListener(this) { taskSnapshot ->
                     pd.dismiss()
+                    updateScore()
                     toast("Successfully Uploaded")
                 }.addOnFailureListener(this) {
                     pd.dismiss()
@@ -184,40 +183,17 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun updateScore(value: Long,path: String) {
-        mDBReference = mFirebaeDB.getReference(path)
-        mDBReference.child("count").setValue(value+1)
-        if((value+1) % 5 == 0L){
-
-        }
-    }
-
-    fun getScore(path: String){
-        doAsync {
-            val client = OkHttpClient()
-
-            val request = Request.Builder()
-                    .url("https://aporoksha18-ca.firebaseio.com/" + path + ".json")
-                    .build()
-            val response = client.newCall(request).execute()
-            if (response.isSuccessful) {
-                //val updatesList: ArrayList<Notification> = ArrayList()
-                try {
-                    val body = JSONObject(response.body()?.string())
-                    val keys = body.keys()
-                    if (keys.hasNext()) {
-                        val key = keys.next().toString()
-                        var data = Data()
-                        data.value = body.getLong(key)
-                        if (data.value != 0L) {
-                            uiThread { updateScore(data.value,path) }
-                        }
-                    }
-                } catch (e: Exception){
-                    uiThread { updateScore(0L,path) }
-                }
+    fun updateScore() {
+        dbData.count++
+        mDBReference.child("count").setValue(dbData.count)
+        if (dbData.count == 1L) {
+            if(mFirebaseAuth.currentUser!!.email == null) {
+                mDBReference.child("identifier").setValue(mFirebaseAuth.currentUser!!.phoneNumber)
+            } else {
+                mDBReference.child("identifier").setValue(mFirebaseAuth.currentUser!!.email)
             }
-
+            mDBReference.child("revealedCount").setValue(0)
+            mDBReference.child("totalPoints").setValue(0)
         }
     }
 
