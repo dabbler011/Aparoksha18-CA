@@ -3,11 +3,14 @@ package org.aparoksha.app18.ca.fragments;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 
+import com.airbnb.lottie.LottieAnimationView;
 import com.clock.scratch.ScratchView;
 
 import org.aparoksha.app18.ca.activities.ScratchCardsActivity;
@@ -22,7 +25,12 @@ import java.util.ArrayList;
 
 public class NewCardFragment extends Fragment {
     @Nullable
-    @Override
+
+    ScratchView mScratchView;
+    LottieAnimationView animationView;
+    FrameLayout animationFrame;
+    FrameLayout cardFrame;
+
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.popup_card,container,false);
     }
@@ -30,6 +38,10 @@ public class NewCardFragment extends Fragment {
     @Override
     public void onViewCreated(final View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        mScratchView = view.findViewById(R.id.scratch_view);
+        animationView = view.findViewById(R.id.animationView);
+        cardFrame = view.findViewById(R.id.card_frame);
 
         final int generatedPoint = getRandomValue();
 
@@ -40,7 +52,6 @@ public class NewCardFragment extends Fragment {
         ((ScratchCardsActivity) getActivity()).setPointsRecieved(generatedPoint);
 
         //TODO: Proper image according to points generated is required
-        final ScratchView mScratchView = view.findViewById(R.id.scratch_view);
         mScratchView.setMaxPercent(40);
         mScratchView.setEraserSize(100.0F);
         mScratchView.setMaskColor(-0xff8c1a);
@@ -49,22 +60,17 @@ public class NewCardFragment extends Fragment {
         mScratchView.setEraseStatusListener(new ScratchView.EraseStatusListener() {
             @Override
             public void onProgress(final int percent) {
+                if(percent > 40 && percent != 100) {
+                    mScratchView.clear();
+                    showResultScratch(generatedPoint);
 
-                view.findViewById(R.id.outer_frame).setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        if(percent > 30 && percent != 100) {
-                            mScratchView.clear();
-
-                            if(generatedPoint != 0)
-                                ((TextView) view.findViewById(R.id.textView)).
-                                    setText("You won " + Integer.toString(generatedPoint) + " Points!!");
-                            else
-                                ((TextView) view.findViewById(R.id.textView)).
-                                        setText("Bad luck. Come back soon !!");
-                        }
-                    }
-                });
+                    if(generatedPoint != 0)
+                        ((TextView) view.findViewById(R.id.textView)).
+                                setText("You won " + Integer.toString(generatedPoint) + " Points!!");
+                    else
+                        ((TextView) view.findViewById(R.id.textView)).
+                                setText("Bad luck. Come back soon !!");
+                }
             }
 
             @Override
@@ -73,6 +79,24 @@ public class NewCardFragment extends Fragment {
             }
         });
 
+    }
+
+    private void showResultScratch(int generatedPoint){
+        cardFrame.setVisibility(View.GONE);
+        animationView.setVisibility(View.VISIBLE);
+
+        Log.d("POINTS",  Integer.toString(generatedPoint));
+        if(generatedPoint != 0) {
+            animationView.setAnimation("emoji_wink.json");
+            Log.d("POINTS",  "Loaded");
+        }
+        else {
+            animationView.setAnimation("emoji_shock.json");
+            Log.d("POINTS",  "Loaded");
+
+        }
+        animationView.playAnimation();
+        animationView.loop(true);
     }
 
     /*  Priorities:
@@ -106,4 +130,5 @@ public class NewCardFragment extends Fragment {
         }
         return 0;
     }
+
 }

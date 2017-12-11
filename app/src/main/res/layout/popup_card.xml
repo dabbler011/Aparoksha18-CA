@@ -1,16 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:tools="http://schemas.android.com/tools"
+<RelativeLayout xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/outer_frame"
+    android:background="#aa000000"
     xmlns:android="http://schemas.android.com/apk/res/android">
-
-    <RelativeLayout android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/inner_frame"
-        android:alpha="0.8"
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        tools:ignore="UselessParent">
 
         <FrameLayout
             android:id="@+id/card_frame"
@@ -33,16 +27,28 @@
                 android:layout_gravity="center" />
         </FrameLayout>
 
-        <TextView
-            android:id="@+id/textView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_above="@+id/card_frame"
-            android:layout_centerHorizontal="true"
-            android:layout_marginBottom="30dp"
-            android:textSize="20sp"
-            android:text="Scratch to Win Points" />
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/card_frame"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="30dp"
+        android:layout_marginTop="100dp"
+        android:text="Scratch to Win Points"
+        android:textColor="@android:color/white"
+        android:textSize="20sp" />
 
-    </RelativeLayout>
+    <com.airbnb.lottie.LottieAnimationView
+        android:id="@+id/animationView"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_centerHorizontal="true"
+        android:layout_centerInParent="true"
+        android:layout_centerVertical="true"
+        android:layout_gravity="center"
+        android:maxHeight="10dp"
+        android:maxWidth="10dp"
+        android:visibility="gone" />
 
-</FrameLayout>
+</RelativeLayout>

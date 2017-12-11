@@ -28,6 +28,7 @@ class ScratchCardsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_scratch)
+        title = "Cards"
 
         val ft =supportFragmentManager.beginTransaction()
         ft.add(R.id.frame,ScratchCardFragment())

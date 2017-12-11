@@ -29,7 +29,7 @@ android {
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
     implementation 'com.android.support:appcompat-v7:26.0.1'
     implementation 'com.android.support.constraint:constraint-layout:1.0.2'
@@ -44,9 +44,11 @@ dependencies {
     compile 'com.google.firebase:firebase-storage:11.4.0'
     compile 'com.google.firebase:firebase-auth:11.4.0'
     compile 'com.google.firebase:firebase-messaging:11.4.0'
+    compile 'com.firebaseui:firebase-ui-database:0.4.1'
     compile 'com.clock.scratch:Scratch:1.0.0'
     compile 'com.squareup.okhttp3:okhttp:3.4.1'
     compile 'com.github.clans:fab:1.6.2'
     compile 'com.github.tajchert:nammu:1.1.0'
+    compile 'com.airbnb.android:lottie:2.2.3'
 }
 apply plugin: 'com.google.gms.google-services'
