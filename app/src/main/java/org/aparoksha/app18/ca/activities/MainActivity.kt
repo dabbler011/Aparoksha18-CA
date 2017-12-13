@@ -42,6 +42,7 @@ class MainActivity : AppCompatActivity() {
     private val CAMERA_REQUEST = 3
     private val RC_NEW_CARD = 4
     private val DETAILS_REQUEST = 5
+    private val ERROR_Activity = 6
 
     private fun initDB() {
         dbData = Data()
@@ -114,8 +115,11 @@ class MainActivity : AppCompatActivity() {
                 override fun onDataChange(p0: DataSnapshot) {
                     if (p0.value != null) {
                         dbData = p0.getValue(Data::class.java)!!
+                        if(!dbData.accountVerified) {
+                            val i = Intent(this@MainActivity,UnverifiedActivity::class.java)
+                            startActivityForResult(i,ERROR_Activity)
+                        }
                     } else {
-                        dbData = Data()
                         val i = Intent(this@MainActivity,DetailsActivity::class.java)
                         startActivityForResult(i,DETAILS_REQUEST)
                     }
@@ -129,6 +133,7 @@ class MainActivity : AppCompatActivity() {
             mDBReference.child("totalPoints").addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(p0: DataSnapshot?) {
                     //pointsValue.text = p0?.value.toString()
+
                 }
 
                 override fun onCancelled(p0: DatabaseError?) {
@@ -179,6 +184,10 @@ class MainActivity : AppCompatActivity() {
                     override fun onDataChange(p0: DataSnapshot) {
                         if (p0.value != null) {
                             dbData = p0.getValue(Data::class.java)!!
+                            if(!dbData.accountVerified) {
+                                val i = Intent(this@MainActivity,UnverifiedActivity::class.java)
+                                startActivityForResult(i,ERROR_Activity)
+                            }
                         } else {
                             dbData = Data()
                             val i = Intent(this@MainActivity,DetailsActivity::class.java)
@@ -268,7 +277,14 @@ class MainActivity : AppCompatActivity() {
                 mDBReference.child("revealedCount").setValue(0)
                 mDBReference.child("totalPoints").setValue(0)
                 mDBReference.child("count").setValue(0)
-
+                mDBReference.child("accountVerified").setValue(false)
+                val i = Intent(this@MainActivity,UnverifiedActivity::class.java)
+                startActivityForResult(i,ERROR_Activity)
+            }
+        } else if(requestCode == ERROR_Activity) {
+            if(!dbData.accountVerified) {
+                val i = Intent(this@MainActivity,UnverifiedActivity::class.java)
+                startActivityForResult(i,ERROR_Activity)
             }
         }
     }

@@ -12,5 +12,6 @@ data class Data (
         var userName: String = "",
         var fullName: String = "",
         var gender: String = "",
-        var images: List<Image>? = null
+        var images: List<Image>? = null,
+        var accountVerified: Boolean = false
 )
