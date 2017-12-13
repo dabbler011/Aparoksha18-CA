@@ -6,9 +6,15 @@
     xmlns:fab="http://schemas.android.com/apk/res-auto"
     android:id="@+id/main">
 
-    <RelativeLayout
+    <android.support.v4.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:id="@+id/scroll_layout"
+        xmlns:android="http://schemas.android.com/apk/res/android">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
 
         <TextView
             android:id="@+id/user"
@@ -22,12 +28,14 @@
             android:textSize="20dp"
             android:textStyle="bold" />
 
-        <TextView
+        <Button
             android:id="@+id/scratch"
+            style="@style/Widget.AppCompat.Button.Borderless"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@+id/shareProgress"
             android:layout_centerHorizontal="true"
+            android:elevation="0dp"
             android:padding="30dp"
             android:text="Get your Scratch Card"
             android:textColor="@android:color/black" />
@@ -125,49 +133,51 @@
             android:id="@+id/leaderboard"
             android:layout_margin="10dp"/>
 
-        <com.github.clans.fab.FloatingActionMenu
-            android:id="@+id/fab_menu"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentEnd="true"
-            android:paddingBottom="16dp"
-            android:paddingEnd="16dp"
-            fab:menu_backgroundColor="#ccffffff"
-            fab:fab_colorNormal="#DA4336"
-            fab:fab_colorPressed="#E75043"
-            fab:fab_colorRipple="#99FFFFFF"
-            fab:fab_showShadow="true"
-            fab:menu_labels_colorNormal="#333333"
-            fab:menu_labels_colorPressed="#444444"
-            fab:menu_labels_colorRipple="#66FFFFFF"
-            fab:menu_labels_showShadow="true"
-            fab:menu_labels_maxLines="-1"
-            fab:menu_labels_position="left"
-            fab:menu_openDirection="up"
-            fab:fab_shadowColor="#000000"
-            fab:menu_labels_ellipsize="end"
-            fab:menu_labels_singleLine="true">
-
-            <com.github.clans.fab.FloatingActionButton
-                android:id="@+id/camera"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_action_camera"
-                fab:fab_label="Upload from Camera"
-                fab:fab_size="mini" />
-
-            <com.github.clans.fab.FloatingActionButton
-                android:id="@+id/upload"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_action_storage"
-                fab:fab_label="Upload from Storage"
-                fab:fab_size="mini" />
-
-        </com.github.clans.fab.FloatingActionMenu>
-
-
     </RelativeLayout>
+
+    </android.support.v4.widget.NestedScrollView>
+
+    <com.github.clans.fab.FloatingActionMenu
+        android:id="@+id/fab_menu"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:paddingBottom="16dp"
+        android:paddingEnd="16dp"
+        fab:layout_anchor="@id/scroll_layout"
+        fab:layout_anchorGravity="bottom|right|end"
+        fab:fab_colorNormal="#DA4336"
+        fab:fab_colorPressed="#E75043"
+        fab:fab_colorRipple="#99FFFFFF"
+        fab:fab_showShadow="true"
+        fab:menu_labels_colorNormal="#333333"
+        fab:menu_labels_colorPressed="#444444"
+        fab:menu_labels_colorRipple="#66FFFFFF"
+        fab:menu_labels_showShadow="true"
+        fab:menu_labels_maxLines="-1"
+        fab:menu_labels_position="left"
+        fab:menu_openDirection="up"
+        fab:fab_shadowColor="#000000"
+        fab:menu_labels_ellipsize="end"
+        fab:menu_labels_singleLine="true">
+
+        <com.github.clans.fab.FloatingActionButton
+            android:id="@+id/camera"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_action_camera"
+            fab:fab_label="Upload from Camera"
+            fab:fab_size="mini" />
+
+        <com.github.clans.fab.FloatingActionButton
+            android:id="@+id/upload"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_action_storage"
+            fab:fab_label="Upload from Storage"
+            fab:fab_size="mini" />
+
+    </com.github.clans.fab.FloatingActionMenu>
 
 </android.support.design.widget.CoordinatorLayout>

@@ -24,7 +24,9 @@
             </intent-filter>
         </activity>
         <activity android:name=".activities.ScratchCardsActivity" />
-        <activity android:name=".DetailsActivity"></activity>
+        <activity android:name=".DetailsActivity" />
+        <activity android:name=".activities.UploadsActivity" />
+        <activity android:name=".activities.UnverifiedActivity"></activity>
     </application>
 
 </manifest>

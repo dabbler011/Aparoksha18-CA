@@ -18,7 +18,6 @@ import android.graphics.Bitmap
 import android.content.Context
 import android.net.Uri
 import android.provider.MediaStore.Images
-import android.renderscript.Matrix4f
 import com.google.firebase.database.*
 import org.aparoksha.app18.ca.models.Data
 import org.aparoksha.app18.ca.R
@@ -27,9 +26,8 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.ValueEventListener
 import org.aparoksha.app18.ca.DetailsActivity
-import org.aparoksha.app18.ca.Manifest
+import org.aparoksha.app18.ca.models.Image
 import pl.tajchert.nammu.Nammu
-import pl.tajchert.nammu.PermissionCallback
 
 class MainActivity : AppCompatActivity() {
     private lateinit var mFirebaseAuth: FirebaseAuth
@@ -156,6 +154,9 @@ class MainActivity : AppCompatActivity() {
             AuthUI.getInstance().signOut(this)
             user.text = ""
             return true
+        } else if(item.itemId == R.id.uploadedImages) {
+            var i = Intent(this,UploadsActivity::class.java)
+            startActivity(i)
         }
         return super.onOptionsItemSelected(item)
     }
@@ -203,6 +204,7 @@ class MainActivity : AppCompatActivity() {
                 val photoRef = idReference.child(System.currentTimeMillis().toString())
                 photoRef.putFile(selectedImageUri).addOnSuccessListener(this) {
                     pd.dismiss()
+                    mDBReference.child("images").child(dbData.count.toString()).setValue(Image(photoRef.path,false))
                     updateScore()
                     toast("Successfully Uploaded")
                 }.addOnFailureListener(this) {
@@ -222,6 +224,7 @@ class MainActivity : AppCompatActivity() {
                 val photoRef = idReference.child(System.currentTimeMillis().toString())
                 photoRef.putFile(selectedImageUri).addOnSuccessListener(this) {
                     pd.dismiss()
+                    mDBReference.child("images").child(dbData.count.toString()).setValue(Image(photoRef.path,false))
                     updateScore()
                     toast("Successfully Uploaded")
                 }.addOnFailureListener(this) {
@@ -250,17 +253,22 @@ class MainActivity : AppCompatActivity() {
                 dbData.collegeName = extras.get("collegeName").toString()
                 dbData.userName = extras.get("userName").toString()
                 dbData.fullName = extras.get("fullName").toString()
+                dbData.gender = extras.get("gender").toString()
+                mDBReference.child("gender").setValue(dbData.gender)
                 mDBReference.child("collegeName").setValue(dbData.collegeName)
                 mDBReference.child("fullName").setValue(dbData.fullName)
                 mDBReference.child("userName").setValue(dbData.userName)
                 if (mFirebaseAuth.currentUser!!.email == null) {
                     mDBReference.child("identifier").setValue(mFirebaseAuth.currentUser!!.phoneNumber)
+                    user.text = mFirebaseAuth.currentUser!!.phoneNumber
                 } else {
                     mDBReference.child("identifier").setValue(mFirebaseAuth.currentUser!!.email)
+                    user.text = mFirebaseAuth.currentUser!!.email
                 }
                 mDBReference.child("revealedCount").setValue(0)
                 mDBReference.child("totalPoints").setValue(0)
                 mDBReference.child("count").setValue(0)
+
             }
         }
     }

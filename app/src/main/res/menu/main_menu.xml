@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:title="LogOut"
+        android:title="View Uploaded Images"
+        android:id="@+id/uploadedImages"/>
+    <item
+        android:title="Logout"
         android:id="@+id/logout"/>
+
 </menu>

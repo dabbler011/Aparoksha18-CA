@@ -50,5 +50,7 @@ dependencies {
     compile 'com.github.clans:fab:1.6.2'
     compile 'com.github.tajchert:nammu:1.1.0'
     compile 'com.airbnb.android:lottie:2.2.3'
+    compile 'de.hdodenhof:circleimageview:2.2.0'
+    compile 'com.firebaseui:firebase-ui-storage:2.4.0'
 }
 apply plugin: 'com.google.gms.google-services'
