@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <array name="preloaded_fonts" translatable="false">
+        <item>@font/</item>
         <item>@font/actor</item>
         <item>@font/cabin</item>
         <item>@font/chela_one</item>
+        <item>@font/cormorant_sc_light</item>
+        <item>@font/cutive_mono</item>
         <item>@font/lato</item>
         <item>@font/lato_thin</item>
         <item>@font/montserrat</item>
+        <item>@font/syncopate</item>
     </array>
 </resources>
