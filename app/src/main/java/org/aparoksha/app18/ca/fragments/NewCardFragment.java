@@ -86,9 +86,9 @@ public class NewCardFragment extends Fragment {
         animationView.setVisibility(View.VISIBLE);
 
         if(generatedPoint != 0)
-            animationView.setAnimation("emoji_wink.json");
+            animationView.setAnimation("box_gift.json");
         else
-            animationView.setAnimation("emoji_shock.json");
+            animationView.setAnimation("box_empty.json");
 
         animationView.playAnimation();
         animationView.loop(true);
