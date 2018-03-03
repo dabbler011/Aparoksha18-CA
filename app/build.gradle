@@ -17,8 +17,8 @@ android {
         applicationId "org.aparoksha.app18.ca"
         minSdkVersion 19
         targetSdkVersion 27
-        versionCode 4
-        versionName "2.1"
+        versionCode 6
+        versionName "2.3"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
